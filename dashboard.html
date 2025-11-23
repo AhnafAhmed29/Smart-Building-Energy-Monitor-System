@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ device_name }} - Energy Monitor</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --bg-dark: #e0f2fe;
+      --bg-card: #f0f9ff;
+      --bg-card-hover: #dbeafe;
+      --border: #bae6fd;
+      --text-main: #0c4a6e;
+      --text-muted: #075985;
+      --primary: #0284c7;
+      --primary-glow: rgba(2, 132, 199, 0.2);
+      --success: #059669;
+      --danger: #dc2626;
+      --warning: #d97706;
+      --info: #0891b2;
+      --shadow-color: rgba(2, 132, 199, 0.15);
+      --shadow-hover: rgba(2, 132, 199, 0.25);
+      --chart-text: #075985;
+      --chart-grid: rgba(2, 132, 199, 0.1);
+      --input-bg: #f0f9ff;
+      --spinner-border: rgba(2, 132, 199, 0.3);
+      --bg-gradient-1: #e0f2fe;
+      --bg-gradient-2: #bae6fd;
+    }
+
+    [data-theme="dark"] {
+      --bg-dark: #0a0e1a;
+      --bg-card: #1a1f35;
+      --bg-card-hover: #222842;
+      --border: #2d3548;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+      --primary-glow: rgba(59, 130, 246, 0.3);
+      --success: #22c55e;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --info: #06b6d4;
+      --shadow-color: rgba(0, 0, 0, 0.4);
+      --shadow-hover: rgba(0, 0, 0, 0.5);
+      --chart-text: #94a3b8;
+      --chart-grid: rgba(255, 255, 255, 0.05);
+      --input-bg: #1a1f35;
+      --spinner-border: rgba(255, 255, 255, 0.3);
+      --bg-gradient-1: #0a0e1a;
+      --bg-gradient-2: #1a1f35;
+    }
+
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) var(--bg-dark);
+    }
+
+    *::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    *::-webkit-scrollbar-track {
+      background: var(--bg-card);
+    }
+
+    *::-webkit-scrollbar-thumb {
+      background-color: var(--border);
+      border-radius: 4px;
+    }
+
+    *::-webkit-scrollbar-thumb:hover {
+      background-color: var(--primary);
+    }
+
+    body {
+      background: linear-gradient(135deg, var(--bg-gradient-1) 0%, var(--bg-gradient-2) 100%);
+      color: var(--text-main);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    .card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 20px var(--shadow-color);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
+      border-radius: 12px;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px var(--shadow-hover);
+    }
+
+    .card-header {
+      background: linear-gradient(135deg, rgba(2, 132, 199, 0.15), rgba(14, 165, 233, 0.1));
+      color: var(--text-main);
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 1.25rem;
+      border-radius: 12px 12px 0 0 !important;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card-header::before {
+      content: '';
+      width: 4px;
+      height: 20px;
+      background: var(--primary);
+      border-radius: 2px;
+    }
+
+    label, p, strong, span, .form-label,
+    #header-status-text, #month-label, #month-kwh, #month-bill {
+      color: var(--text-main) !important;
+    }
+
+    input[type="date"], input[type="month"], input[type="time"] {
+      background-color: var(--input-bg);
+      color: var(--text-main) !important;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.5rem;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    input[type="date"]:focus, input[type="month"]:focus, input[type="time"]:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .status-pill {
+      padding: .35rem .8rem;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      color: var(--text-main) !important;
+      animation: fadeIn 0.3s ease;
+    }
+    .status-pill.on { 
+      background: rgba(5, 150, 105, 0.2); 
+      color: var(--success) !important;
+      box-shadow: 0 0 20px rgba(5, 150, 105, 0.3);
+    }
+    .status-pill.off { 
+      background: rgba(220, 38, 38, 0.2); 
+      color: var(--danger) !important; 
+    }
+
+    .status-pill::before {
+      content: '';
+      width: .6rem; 
+      height: .6rem;
+      border-radius: 50%;
+      margin-right: .5rem;
+      background-color: currentColor;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .metric-card {
+      border-radius: 12px;
+      padding: 1.5rem;
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      box-shadow: 0 4px 15px rgba(2, 132, 199, 0.2);
+    }
+
+    .metric-card:hover {
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 8px 30px rgba(2, 132, 199, 0.35);
+    }
+
+    .metric-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .metric-card:hover::before {
+      opacity: 1;
+    }
+
+    .metric-card .value {
+      font-size: 2.4rem;
+      font-weight: 700;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      animation: slideIn 0.5s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .metric-card .icon {
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      font-size: 3.5rem;
+      opacity: 0.15;
+      transform: translateY(-50%);
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+    .metric-card:hover .icon {
+      transform: translateY(-50%) scale(1.1) rotate(5deg);
+      opacity: 0.25;
+    }
+
+    .metric-watts  { 
+      background: linear-gradient(135deg, #7c3aed, #a78bfa); 
+      border-left: 4px solid #c4b5fd;
+    }
+    .metric-volts  { 
+      background: linear-gradient(135deg, #0891b2, #06b6d4); 
+      border-left: 4px solid #22d3ee;
+    }
+    .metric-amps   { 
+      background: linear-gradient(135deg, #9d8ca1, #b8a5bd); 
+      border-left: 4px solid #cbb8cf;
+    }
+
+    .btn {
+      border-radius: 8px;
+      font-weight: 600;
+      padding: 0.65rem 1.5rem;
+      transition: all 0.3s ease;
+      border: none;
+    }
+
+    .form-check-input {
+      background-color: var(--input-bg);
+      border: 1px solid var(--border);
+      cursor: pointer;
+    }
+
+    .form-check-input:checked {
+      background-color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .form-check-label {
+      color: var(--text-main) !important;
+      cursor: pointer;
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #059669, #10b981);
+      box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);
+    }
+
+    .btn-success:hover {
+      background: linear-gradient(135deg, #047857, #059669);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4);
+    }
+
+    .btn-outline-danger {
+      border: 2px solid var(--danger);
+      color: var(--danger);
+      background: transparent;
+    }
+
+    .btn-outline-danger:hover {
+      background: var(--danger);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      box-shadow: 0 4px 15px rgba(2, 132, 199, 0.3);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #0369a1, #075985);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(2, 132, 199, 0.4);
+    }
+
+    .btn-back {
+      background: linear-gradient(135deg, #64748b, #475569);
+      box-shadow: 0 4px 15px rgba(100, 116, 139, 0.3);
+    }
+
+    .btn-back:hover {
+      background: linear-gradient(135deg, #475569, #334155);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(100, 116, 139, 0.4);
+    }
+
+    .nav-tabs {
+      border-bottom: 2px solid var(--border);
+    }
+
+    .nav-tabs .nav-link {
+      color: var(--text-muted) !important;
+      border: none;
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+
+    .nav-tabs .nav-link:hover {
+      color: var(--text-main) !important;
+      background-color: transparent;
+      border-bottom-color: var(--primary-glow);
+    }
+
+    .nav-tabs .nav-link.active {
+      color: var(--primary) !important;
+      background-color: transparent;
+      border-bottom: 3px solid var(--primary);
+    }
+
+    header {
+      background: var(--bg-card);
+      padding: 1.25rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 15px rgba(2, 132, 199, 0.15);
+    }
+
+    header h3 {
+      background: linear-gradient(135deg, #0284c7, #0891b2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    #header-status-text {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: rgba(2, 132, 199, 0.1);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      border: 1px solid var(--border);
+    }
+
+    footer {
+      color: var(--text-muted);
+      margin-top: 3rem;
+      padding: 1.5rem;
+      text-align: center;
+      border-top: 1px solid var(--border);
+    }
+
+    hr {
+      border-color: var(--border);
+      opacity: 1;
+      margin: 1rem 0;
+    }
+
+    .summary-row {
+      padding: 0.75rem 0;
+      border-radius: 6px;
+      transition: background-color 0.2s ease;
+    }
+
+    .summary-row:hover {
+      background-color: rgba(2, 132, 199, 0.08);
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--spinner-border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 768px) {
+      .metric-card .value {
+        font-size: 1.8rem;
+      }
+      
+      .metric-card .icon {
+        font-size: 2.5rem;
+      }
+
+      header h3 {
+        font-size: 1.5rem;
+      }
+    }
+
+    .theme-toggle {
+      background: linear-gradient(135deg, var(--primary), var(--info));
+      border: none;
+      box-shadow: 0 4px 15px var(--shadow-color);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: white;
+      transition: all 0.3s ease;
+    }
+
+    .theme-toggle:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px var(--shadow-hover);
+    }
+
+    .theme-toggle:active {
+      transform: translateY(0);
+    }
+
+    .theme-toggle i {
+      font-size: 1.1rem;
+    }
+
+    .modal-content {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+    }
+
+    .modal-header {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-footer {
+      border-top: 1px solid var(--border);
+    }
+
+    .form-control {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+    }
+
+    .form-control:focus {
+      background: var(--input-bg);
+      border-color: var(--primary);
+      color: var(--text-main);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .btn-close {
+      filter: brightness(0) invert(var(--bs-btn-close-white-filter, 1));
+    }
+
+    [data-theme="dark"] .btn-close {
+      filter: brightness(0) invert(1);
+    }
+
+    .badge {
+      padding: 0.4rem 0.8rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .alert {
+      border-radius: 8px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container-fluid py-4">
+
+    <!-- HEADER -->
+    <header class="mb-4">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+          <button class="btn btn-back" onclick="goHome()">
+            <i class="bi bi-arrow-left me-2"></i>Back
+          </button>
+          <i class="bi bi-lightning-charge-fill fs-2 text-primary"></i>
+          <div>
+            <h3 class="m-0">{{ device_name }}</h3>
+            <small class="text-muted">Device ID: {{ device_id }}</small>
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+          <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
+            <i class="bi bi-moon-stars-fill" id="theme-icon"></i>
+            <span id="theme-text">Dark Mode</span>
+          </button>
+          <div id="header-status-text">
+            <span class="spinner"></span>
+            <span>Connecting...</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- REALTIME + DEVICE CONTROL -->
+    <div class="row g-4 mb-4">
+      <div class="col-lg-8">
+        <div class="card h-100">
+          <div class="card-header">
+            <i class="bi bi-activity"></i>
+            Real-time Monitoring
+          </div>
+          <div class="card-body">
+
+            <div class="row g-3 mb-4">
+              <div class="col-md-4">
+                <div class="metric-card metric-watts">
+                  <i class="bi bi-speedometer2 icon"></i>
+                  <div class="value"><span id="metric-power">0.0</span> W</div>
+                  <small style="opacity: 0.9;">Power Draw</small>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="metric-card metric-volts">
+                  <i class="bi bi-activity icon"></i>
+                  <div class="value"><span id="metric-voltage">0.0</span> V</div>
+                  <small style="opacity: 0.9;">Voltage</small>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="metric-card metric-amps">
+                  <i class="bi bi-lightning icon"></i>
+                  <div class="value"><span id="metric-current">0.00</span> A</div>
+                  <small style="opacity: 0.9;">Current</small>
+                </div>
+              </div>
+            </div>
+
+            <div style="height:220px;">
+              <canvas id="realtimeChart"></canvas>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- DEVICE CONTROL -->
+      <div class="col-lg-4">
+        <div class="card h-100">
+          <div class="card-header">
+            <i class="bi bi-toggles"></i>
+            Device Control & Summary
+          </div>
+          <div class="card-body d-flex flex-column">
+
+            <div class="d-grid gap-3 mb-4">
+              <button class="btn btn-success btn-lg" onclick="toggleDevice(true)">
+                <i class="bi bi-power me-2"></i> Turn ON
+              </button>
+              <button class="btn btn-outline-danger btn-lg" onclick="toggleDevice(false)">
+                <i class="bi bi-power me-2"></i> Turn OFF
+              </button>
+            </div>
+
+            <div class="mb-3 p-3" style="background: rgba(2, 132, 199, 0.08); border-radius: 8px; border: 1px solid var(--border);">
+              <strong style="color: var(--text-main); font-size: 0.9rem;">Device Status</strong>
+              <div class="mt-2">
+                <span id="control-status" class="status-pill">--</span>
+              </div>
+            </div>
+
+            <hr>
+
+            <div class="summary-row d-flex justify-content-between px-2">
+              <span style="color: var(--text-muted);">
+                <i class="bi bi-lightning-charge me-2"></i>Today's Energy
+              </span>
+              <strong id="summary-energy" style="color: var(--success);">0.00 kWh</strong>
+            </div>
+
+            <div class="summary-row d-flex justify-content-between px-2">
+              <span style="color: var(--text-muted);">
+                <i class="bi bi-clock me-2"></i>Runtime
+              </span>
+              <strong id="summary-runtime" style="color: var(--info);">0h 0m</strong>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCHEDULES SECTION -->
+    <div class="card mb-4" id="schedules">
+      <div class="card-header">
+        <i class="bi bi-clock-history"></i>
+        Automated Schedules
+      </div>
+      <div class="card-body">
+        
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <p style="color: var(--text-muted); margin: 0;">
+            Automatically turn device ON/OFF at specific times to save energy
+          </p>
+          <button class="btn btn-primary" onclick="showAddScheduleModal()">
+            <i class="bi bi-plus-circle me-2"></i>Add Schedule
+          </button>
+        </div>
+
+        <!-- Schedules List -->
+        <div id="schedules-list" class="mt-3">
+          <div class="text-center py-4" id="schedules-loading">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2" style="color: var(--text-muted);">Loading schedules...</p>
+          </div>
+          
+          <div id="schedules-empty" style="display: none; text-align: center; padding: 2rem;">
+            <i class="bi bi-calendar-x" style="font-size: 3rem; color: var(--text-muted);"></i>
+            <p style="color: var(--text-muted); margin-top: 1rem;">No schedules created yet</p>
+          </div>
+
+          <div id="schedules-container"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- MONTHLY BILL -->
+    <div class="row g-4 mb-4">
+      <div class="col-lg-6">
+        <div class="card h-100">
+          <div class="card-header">
+            <i class="bi bi-receipt"></i>
+            Monthly Bill (Bangladesh)
+          </div>
+          <div class="card-body">
+
+            <div class="d-flex align-items-center gap-3 flex-wrap mb-4">
+              <label style="color: var(--text-muted); font-weight: 500;">Select Month:</label>
+              <input type="month" id="month-picker" class="form-control" style="max-width:200px;">
+              <button class="btn btn-primary" onclick="loadMonthlyBill()">
+                <i class="bi bi-search me-2"></i>Show
+              </button>
+            </div>
+
+            <div style="background: rgba(2, 132, 199, 0.08); padding: 1.5rem; border-radius: 10px; border: 1px solid var(--border);">
+              <div class="mb-3">
+                <span style="color: var(--text-muted);">Month:</span>
+                <strong id="month-label" class="ms-2">--</strong>
+              </div>
+              <div class="mb-3">
+                <span style="color: var(--text-muted);">Total Energy:</span>
+                <strong id="month-kwh" class="ms-2" style="color: var(--info);">-- kWh</strong>
+              </div>
+              <div>
+                <span style="color: var(--text-muted);">Total Bill:</span>
+                <strong id="month-bill" class="ms-2" style="color: var(--success); font-size: 1.3rem;">-- Tk</strong>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- DATA EXPORT CARD -->
+      <div class="col-lg-6">
+        <div class="card h-100">
+          <div class="card-header">
+            <i class="bi bi-download"></i>
+            Export Data
+          </div>
+          <div class="card-body">
+            
+            <div class="mb-3" id="export-stats" style="background: rgba(2, 132, 199, 0.08); padding: 1rem; border-radius: 8px; border: 1px solid var(--border);">
+              <div class="d-flex justify-content-between mb-2">
+                <span style="color: var(--text-muted);">Total Records:</span>
+                <strong id="total-records">Loading...</strong>
+              </div>
+              <div class="d-flex justify-content-between mb-2">
+                <span style="color: var(--text-muted);">First Reading:</span>
+                <strong id="first-reading">--</strong>
+              </div>
+              <div class="d-flex justify-content-between">
+                <span style="color: var(--text-muted);">Last Reading:</span>
+                <strong id="last-reading">--</strong>
+              </div>
+            </div>
+
+            <hr>
+
+            <div class="mb-3">
+              <label style="color: var(--text-muted); font-weight: 500; display: block; margin-bottom: 0.5rem;">Export Options:</label>
+              <div class="form-check mb-2">
+                <input class="form-check-input" type="radio" name="exportType" id="exportAll" value="all" checked>
+                <label class="form-check-label" for="exportAll">
+                  Export All Data
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="exportType" id="exportRange" value="range">
+                <label class="form-check-label" for="exportRange">
+                  Export Date Range
+                </label>
+              </div>
+            </div>
+
+            <div id="date-range-picker" style="display: none; margin-bottom: 1rem;">
+              <div class="d-flex gap-2 flex-wrap align-items-center">
+                <label style="color: var(--text-muted); font-size: 0.9rem;">From:</label>
+                <input type="date" id="export-start" class="form-control" style="max-width:150px;">
+                <label style="color: var(--text-muted); font-size: 0.9rem;">To:</label>
+                <input type="date" id="export-end" class="form-control" style="max-width:150px;">
+              </div>
+            </div>
+
+            <div class="d-grid">
+              <button class="btn btn-success btn-lg" onclick="exportToCSV()">
+                <i class="bi bi-file-earmark-spreadsheet me-2"></i>
+                Download CSV
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RANGE VIEW -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <i class="bi bi-graph-up"></i>
+        Energy Usage - Range View
+      </div>
+      <div class="card-body">
+
+        <div class="d-flex flex-wrap gap-3 mb-4 align-items-center">
+          <label style="color: var(--text-muted); font-weight: 500;">From:</label>
+          <input type="date" id="range-start" class="form-control" style="max-width:180px;">
+          <label style="color: var(--text-muted); font-weight: 500;">To:</label>
+          <input type="date" id="range-end" class="form-control" style="max-width:180px;">
+          <button class="btn btn-primary" onclick="loadRangeData()">
+            <i class="bi bi-arrow-clockwise me-2"></i>Load Range
+          </button>
+        </div>
+        
+        <!-- Tabs -->
+        <ul class="nav nav-tabs mb-3">
+          <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#hourly-pane">
+              <i class="bi bi-clock-history me-2"></i>Hourly View
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#daily-pane">
+              <i class="bi bi-calendar-day me-2"></i>Daily View
+            </button>
+          </li>
+        </ul>
+
+        <div class="tab-content">
+          <div class="tab-pane fade show active" id="hourly-pane">
+            <div style="height:320px;">
+              <canvas id="hourlyChart"></canvas>
+            </div>
+          </div>
+
+          <div class="tab-pane fade" id="daily-pane">
+            <div style="height:320px;">
+              <canvas id="dailyChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <footer>
+      <div class="d-flex justify-content-center align-items-center gap-3">
+        <i class="bi bi-lightning-charge-fill text-primary"></i>
+        <span>Energy Monitor Dashboard © 2025</span>
+        <i class="bi bi-lightning-charge-fill text-primary"></i>
+      </div>
+    </footer>
+  </div>
+
+  <!-- JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    const DEVICE_ID = "{{ device_id }}";
+    const getEl = id => document.getElementById(id);
+    let realtimeChart, hourlyChart, dailyChart;
+
+    function goHome() {
+      window.location.href = '/';
+    }
+
+    function formatUptime(seconds){
+      const h=Math.floor(seconds/3600), m=Math.floor((seconds%3600)/60);
+      return `${h}h ${m}m`;
+    }
+
+    function setStatusPill(el,isOn){
+      el.className = isOn ? 'status-pill on' : 'status-pill off';
+      el.textContent = isOn ? 'ON' : 'OFF';
+    }
+
+    async function toggleDevice(isOn){
+      try {
+        const response = await fetch(`/api/device/${DEVICE_ID}/switch`,{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({on:isOn})
+        });
+        
+        const result = await response.json();
+        
+        if (!result.success) {
+          alert('Error: ' + (result.error || 'Failed to control device'));
+          if (result.error && result.error.includes('offline')) {
+            alert('The device is currently offline. Please check the device connection.');
+          }
+        }
+        
+        setTimeout(updateLive, 800);
+      } catch (error) {
+        console.error('Error toggling device:', error);
+        alert('Failed to control device. It may be offline.');
+      }
+    }
+
+    async function updateLive(){
+      try{
+        const r=await fetch(`/api/device/${DEVICE_ID}/live`); 
+        const d=await r.json();
+
+        // Check if device is online
+        if (d.is_online === false || d.error) {
+          // Device is offline - show zeros and disconnected status
+          getEl('metric-power').textContent = '0.0';
+          getEl('metric-voltage').textContent = '0.0';
+          getEl('metric-current').textContent = '0.00';
+          
+          getEl('control-status').className = 'status-pill off';
+          getEl('control-status').textContent = 'OFFLINE';
+
+          const statusText = getEl('header-status-text');
+          statusText.innerHTML = '<i class="bi bi-exclamation-triangle-fill text-warning"></i><span>Device Offline</span>';
+          
+          return; // Don't update chart
+        }
+
+        // Device is online - show real data
+        getEl('metric-power').textContent = d.power.toFixed(1);
+        getEl('metric-voltage').textContent = d.voltage.toFixed(1);
+        getEl('metric-current').textContent = d.current.toFixed(2);
+
+        setStatusPill(getEl('control-status'), d.switch);
+
+        const statusText = getEl('header-status-text');
+        statusText.innerHTML = `<i class="bi bi-check-circle-fill text-success"></i><span>Connected</span>`;
+
+        const now=new Date().toLocaleTimeString();
+        realtimeChart.data.labels.push(now);
+        realtimeChart.data.datasets[0].data.push(d.power);
+
+        if(realtimeChart.data.labels.length>60){
+          realtimeChart.data.labels.shift();
+          realtimeChart.data.datasets[0].data.shift();
+        }
+
+        realtimeChart.update('none');
+      }
+      catch(e){ 
+        console.error(e);
+        getEl('metric-power').textContent = '0.0';
+        getEl('metric-voltage').textContent = '0.0';
+        getEl('metric-current').textContent = '0.00';
+        getEl('control-status').className = 'status-pill off';
+        getEl('control-status').textContent = 'ERROR';
+        getEl('header-status-text').innerHTML = '<i class="bi bi-x-circle-fill text-danger"></i><span>Connection Error</span>';
+      }
+    }
+
+    async function updateSummary(){
+      const r=await fetch(`/api/device/${DEVICE_ID}/summary`);
+      const d=await r.json();
+      getEl('summary-energy').textContent = d.today_energy_kwh.toFixed(2)+" kWh";
+      getEl('summary-runtime').textContent = formatUptime(d.daily_runtime_seconds);
+    }
+
+    async function loadMonthlyBill(){
+      const val=getEl('month-picker').value;
+      const url=val? `/api/device/${DEVICE_ID}/monthly_bill?month=${val}`:`/api/device/${DEVICE_ID}/monthly_bill`;
+
+      const r=await fetch(url);
+      const d=await r.json();
+
+      getEl('month-label').textContent=d.month;
+      getEl('month-kwh').textContent=d.total_kwh.toFixed(2)+" kWh";
+      getEl('month-bill').textContent=d.total_bill.toFixed(2)+" Tk";
+    }
+
+    async function loadRangeData(){
+      const start=getEl('range-start').value;
+      const end=getEl('range-end').value;
+
+      if(!start||!end){ alert("Please select dates."); return; }
+
+      const rh=await fetch(`/api/device/${DEVICE_ID}/history_range_hourly?start=${start}&end=${end}`);
+      const hourlyData=await rh.json();
+      updateHourlyChart(hourlyData);
+
+      const rd=await fetch(`/api/device/${DEVICE_ID}/history_range_daily?start=${start}&end=${end}`);
+      const dailyData=await rd.json();
+      updateDailyChart(dailyData);
+    }
+
+    function updateHourlyChart(grouped){
+      const colors=['#3b82f6','#22c55e','#f59e0b','#e11d48','#06b6d4','#a855f7','#84cc16'];
+      let i=0, sets=[];
+
+      for(const day in grouped){
+        sets.push({
+          label:day,
+          data:grouped[day].map(p=>({x:p.hour,y:p.avg_power})),
+          borderColor:colors[i++%colors.length],
+          backgroundColor:'transparent',
+          pointRadius:4,
+          pointHoverRadius:6,
+          tension:0.3,
+          borderWidth:2
+        });
+      }
+
+      hourlyChart.data.datasets=sets;
+      updateChartTheme(hourlyChart);
+      hourlyChart.update();
+    }
+
+    function updateDailyChart(list){
+      dailyChart.data.labels = list.map(x=>x.date);
+      dailyChart.data.datasets[0].data = list.map(x=>x.kwh);
+      updateChartTheme(dailyChart);
+      dailyChart.update();
+    }
+
+    function updateChartTheme(chart) {
+      const chartText = getComputedStyle(document.documentElement).getPropertyValue('--chart-text').trim();
+      const textMain = getComputedStyle(document.documentElement).getPropertyValue('--text-main').trim();
+      const chartGrid = getComputedStyle(document.documentElement).getPropertyValue('--chart-grid').trim();
+
+      if (chart.options.scales.x) {
+        chart.options.scales.x.ticks.color = chartText;
+        if (chart.options.scales.x.title) {
+          chart.options.scales.x.title.color = textMain;
+        }
+        if (chart.options.scales.x.grid) {
+          chart.options.scales.x.grid.color = chartGrid;
+        }
+      }
+      if (chart.options.scales.y) {
+        chart.options.scales.y.ticks.color = chartText;
+        if (chart.options.scales.y.title) {
+          chart.options.scales.y.title.color = textMain;
+        }
+        chart.options.scales.y.grid.color = chartGrid;
+      }
+      if (chart.options.plugins.legend) {
+        chart.options.plugins.legend.labels.color = textMain;
+      }
+    }
+
+    function initCharts(){
+
+      const chartOptions = {
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins: {
+          legend: {
+            labels: {
+              color: getComputedStyle(document.documentElement).getPropertyValue('--text-main').trim(),
+              font: { size: 12 }
+            }
+          }
+        }
+      };
+
+      realtimeChart = new Chart(getEl('realtimeChart'),{
+        type:'line',
+        data:{labels:[],datasets:[{
+          label:'Power (W)',
+          data:[],
+          borderColor:'#3b82f6',
+          backgroundColor:'rgba(59,130,246,0.15)',
+          fill:true,
+          tension:0.4,
+          pointRadius:0,
+          borderWidth:2
+        }]},
+        options:{
+          ...chartOptions,
+          scales:{
+            x:{ticks:{color: getComputedStyle(document.documentElement).getPropertyValue('--chart-text').trim(), maxTicksLimit:10}},
+            y:{ticks:{color: getComputedStyle(document.documentElement).getPropertyValue('--chart-text').trim()}, beginAtZero:true, grid:{color: getComputedStyle(document.documentElement).getPropertyValue('--chart-grid').trim()}}
+          }
+        }
+      });
+
+      hourlyChart = new Chart(getEl('hourlyChart'),{
+        type:'line',
+        data:{datasets:[]},
+        options:{
+          ...chartOptions,
+          scales:{
+            x:{
+              type:'linear',
+              min:0,
+              max:23,
+              ticks:{stepSize:1,color: getComputedStyle(document.documentElement).getPropertyValue('--chart-text').trim()},
+              title:{display:true,text:"Hour (0-23)",color: getComputedStyle(document.documentElement).getPropertyValue('--text-main').trim()},
+              grid:{color: getComputedStyle(document.documentElement).getPropertyValue('--chart-grid').trim()}
+            },
+            y:{
+              beginAtZero:true,
+              ticks:{color: getComputedStyle(document.documentElement).getPropertyValue('--chart-text').trim()},
+              title:{display:true,text:"Avg Power (W)",color: getComputedStyle(document.documentElement).getPropertyValue('--text-main').trim()},
+              grid:{color: getComputedStyle(document.documentElement).getPropertyValue('--chart-grid').trim()}
+            }
+          }
+        }
+      });
+
+      dailyChart = new Chart(getEl('dailyChart'),{
+        type:'bar',
+        data:{
+          labels:[],
+          datasets:[{
+            label:'Daily Energy (kWh)',
+            data:[],
+            backgroundColor:'rgba(59,130,246,0.7)',
+            borderColor:'#3b82f6',
+            borderWidth:2,
+            borderRadius:6
+          }]
+        },
+        options:{
+          ...chartOptions,
+          scales:{
+            x:{
+              ticks:{color: getComputedStyle(document.documentElement).getPropertyValue('--chart-text').trim()},
+              title:{display:true,text:"Date",color: getComputedStyle(document.documentElement).getPropertyValue('--text-main').trim()},
+              grid:{display:false}
+            },
+            y:{
+              ticks:{color: getComputedStyle(document.documentElement).getPropertyValue('--chart-text').trim()},
+              title:{display:true,text:"kWh",color: getComputedStyle(document.documentElement).getPropertyValue('--text-main').trim()},
+              beginAtZero:true,
+              grid:{color: getComputedStyle(document.documentElement).getPropertyValue('--chart-grid').trim()}
+            }
+          }
+        }
+      });
+
+    }
+
+    document.addEventListener('DOMContentLoaded',()=>{
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      updateThemeIcon(savedTheme);
+
+      initCharts();
+      updateLive();
+      updateSummary();
+      loadMonthlyBill();
+      loadExportStats();
+
+      const today=new Date();
+      const weekAgo=new Date(today); weekAgo.setDate(today.getDate()-7);
+
+      getEl('range-start').value = weekAgo.toISOString().split("T")[0];
+      getEl('range-end').value = today.toISOString().split("T")[0];
+      getEl('month-picker').value = today.toISOString().slice(0,7);
+      
+      // Set export date defaults
+      getEl('export-start').value = weekAgo.toISOString().split("T")[0];
+      getEl('export-end').value = today.toISOString().split("T")[0];
+
+      setInterval(updateLive, 2000);
+      setInterval(updateSummary,60000);
+      
+      // Toggle date range picker
+      document.querySelectorAll('input[name="exportType"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+          const rangePicker = document.getElementById('date-range-picker');
+          if (this.value === 'range') {
+            rangePicker.style.display = 'block';
+          } else {
+            rangePicker.style.display = 'none';
+          }
+        });
+      });
+    });
+
+    async function loadExportStats() {
+      try {
+        const r = await fetch(`/api/device/${DEVICE_ID}/export/stats`);
+        const d = await r.json();
+        
+        getEl('total-records').textContent = d.total_records.toLocaleString();
+        getEl('first-reading').textContent = d.first_reading || 'No data';
+        getEl('last-reading').textContent = d.last_reading || 'No data';
+      } catch (e) {
+        console.error('Error loading export stats:', e);
+        getEl('total-records').textContent = 'Error';
+      }
+    }
+
+    async function exportToCSV() {
+      const exportType = document.querySelector('input[name="exportType"]:checked').value;
+      
+      let url = `/api/device/${DEVICE_ID}/export/csv`;
+      let filename = '';
+      
+      if (exportType === 'range') {
+        const startDate = getEl('export-start').value;
+        const endDate = getEl('export-end').value;
+        
+        if (!startDate || !endDate) {
+          alert('Please select both start and end dates');
+          return;
+        }
+        
+        if (startDate > endDate) {
+          alert('Start date must be before end date');
+          return;
+        }
+        
+        url += `?start_date=${startDate}&end_date=${endDate}`;
+      }
+      
+      try {
+        // Show loading indicator
+        const btn = event.target.closest('button');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generating...';
+        btn.disabled = true;
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Export failed');
+        }
+        
+        // Get the blob and download
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        
+        // Extract filename from Content-Disposition header or use default
+        const contentDisposition = response.headers.get('Content-Disposition');
+        if (contentDisposition) {
+          const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
+          if (filenameMatch) {
+            a.download = filenameMatch[1];
+          }
+        }
+        
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(downloadUrl);
+        document.body.removeChild(a);
+        
+        // Restore button
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        
+        alert('CSV file downloaded successfully!');
+      } catch (error) {
+        console.error('Error exporting CSV:', error);
+        alert('Failed to export data: ' + error.message);
+        
+        // Restore button on error
+        const btn = event.target.closest('button');
+        btn.innerHTML = '<i class="bi bi-file-earmark-spreadsheet me-2"></i>Download CSV';
+        btn.disabled = false;
+      }
+    }
+
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      updateThemeIcon(newTheme);
+      
+      updateChartColors();
+    }
+
+    function updateThemeIcon(theme) {
+      const icon = getEl('theme-icon');
+      const button = icon.closest('.theme-toggle');
+      const buttonText = button.querySelector('span');
+      
+      if (theme === 'dark') {
+        icon.className = 'bi bi-sun-fill';
+        buttonText.textContent = 'Light Mode';
+      } else {
+        icon.className = 'bi bi-moon-stars-fill';
+        buttonText.textContent = 'Dark Mode';
+      }
+    }
+
+    function updateChartColors() {
+      updateChartTheme(realtimeChart);
+      realtimeChart.update();
+      
+      updateChartTheme(hourlyChart);
+      hourlyChart.update();
+      
+      updateChartTheme(dailyChart);
+      dailyChart.update();
+    }
+
+  </script>
+
+</body>
+</html>

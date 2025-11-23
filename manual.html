@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>User Manual - Building Energy Monitor</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  
+  <style>
+    :root {
+      --bg-dark: #e0f2fe;
+      --bg-card: #f0f9ff;
+      --bg-card-hover: #dbeafe;
+      --border: #bae6fd;
+      --text-main: #0c4a6e;
+      --text-muted: #075985;
+      --primary: #0284c7;
+      --success: #059669;
+      --danger: #dc2626;
+      --shadow-color: rgba(2, 132, 199, 0.15);
+      --bg-gradient-1: #e0f2fe;
+      --bg-gradient-2: #bae6fd;
+    }
+
+    [data-theme="dark"] {
+      --bg-dark: #0a0e1a;
+      --bg-card: #1a1f35;
+      --bg-card-hover: #222842;
+      --border: #2d3548;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --shadow-color: rgba(0, 0, 0, 0.4);
+      --bg-gradient-1: #0a0e1a;
+      --bg-gradient-2: #1a1f35;
+    }
+
+    * {
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
+
+    body {
+      background: linear-gradient(135deg, var(--bg-gradient-1) 0%, var(--bg-gradient-2) 100%);
+      color: var(--text-main);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      padding: 2rem 0;
+    }
+
+    .manual-container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: var(--bg-card);
+      padding: 3rem;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 32px var(--shadow-color);
+    }
+
+    .manual-header {
+      text-align: center;
+      margin-bottom: 3rem;
+      padding-bottom: 2rem;
+      border-bottom: 3px solid var(--primary);
+    }
+
+    .manual-title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--primary), #06b6d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1rem;
+    }
+
+    .section {
+      margin-bottom: 3rem;
+    }
+
+    .section-title {
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .section-title::before {
+      content: attr(data-number);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--primary), #06b6d4);
+      color: white;
+      border-radius: 50%;
+      font-weight: 700;
+      font-size: 1.2rem;
+    }
+
+    .section-description {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+    }
+
+    .feature-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .feature-item {
+      padding: 1rem;
+      margin-bottom: 1rem;
+      background: var(--bg-dark);
+      border-left: 4px solid var(--primary);
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .feature-item:hover {
+      transform: translateX(5px);
+      box-shadow: 0 4px 15px var(--shadow-color);
+    }
+
+    .feature-title {
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 0.5rem;
+      font-size: 1.1rem;
+    }
+
+    .feature-description {
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .back-button {
+      background: linear-gradient(135deg, var(--primary), #06b6d4);
+      border: none;
+      color: white;
+      padding: 0.85rem 2.5rem;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      margin-top: 2rem;
+    }
+
+    .back-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(59, 130, 246, 0.5);
+      color: white;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 2rem;
+      right: 2rem;
+      background: linear-gradient(135deg, var(--primary), #06b6d4);
+      border: none;
+      box-shadow: 0 4px 15px var(--shadow-color);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: white;
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    .theme-toggle:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px var(--shadow-color);
+    }
+
+    .note-box {
+      background: rgba(59, 130, 246, 0.1);
+      border-left: 4px solid var(--primary);
+      padding: 1.25rem;
+      border-radius: 8px;
+      margin: 1.5rem 0;
+    }
+
+    .note-title {
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .note-text {
+      color: var(--text-muted);
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 768px) {
+      .manual-container {
+        padding: 2rem 1.5rem;
+      }
+
+      .manual-title {
+        font-size: 2rem;
+      }
+
+      .section-title {
+        font-size: 1.5rem;
+      }
+
+      .theme-toggle {
+        top: 1rem;
+        right: 1rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+      }
+    }
+
+    .step-list {
+      counter-reset: step-counter;
+      list-style: none;
+      padding: 0;
+    }
+
+    .step-item {
+      counter-increment: step-counter;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      background: var(--bg-dark);
+      border-radius: 8px;
+      position: relative;
+      padding-left: 4rem;
+    }
+
+    .step-item::before {
+      content: counter(step-counter);
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 35px;
+      height: 35px;
+      background: linear-gradient(135deg, var(--primary), #06b6d4);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+    }
+  </style>
+</head>
+
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
+    <i class="bi bi-moon-stars-fill" id="theme-icon"></i>
+    <span id="theme-text">Dark Mode</span>
+  </button>
+
+  <div class="container">
+    <div class="manual-container">
+      
+      <div class="manual-header">
+        <h1 class="manual-title">
+          <i class="bi bi-book"></i> Building Energy Monitor - User Manual
+        </h1>
+        <p class="section-description">A comprehensive guide to monitoring and managing your building's energy consumption</p>
+      </div>
+
+      <!-- Section 1: Getting Started -->
+      <div class="section">
+        <h2 class="section-title" data-number="1">Getting Started</h2>
+        <p class="section-description">Learn how to add and manage your smart devices in the system.</p>
+        
+        <ul class="feature-list">
+          <li class="feature-item">
+            <div class="feature-title"><i class="bi bi-plus-circle text-primary me-2"></i>Adding a Device</div>
+            <p class="feature-description">Click the "Add Device" button on the home page. Enter your device name, Device ID, Access ID, and Access Secret from your Tuya smart plug configuration. The system will verify the connection before adding the device.</p>
+          </li>
+          
+          <li class="feature-item">
+            <div class="feature-title"><i class="bi bi-grid text-primary me-2"></i>Device Overview</div>
+            <p class="feature-description">All your devices are displayed on the home page with real-time status indicators (ON/OFF/Disconnected). Click on any device card to access its detailed dashboard.</p>
+          </li>
+          
+          <li class="feature-item">
+            <div class="feature-title"><i class="bi bi-trash text-danger me-2"></i>Removing a Device</div>
+            <p class="feature-description">Hover over a device card and click the trash icon in the top-left corner. Confirm the deletion to remove the device and all its historical data.</p>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Section 2: Real-time Monitoring -->
+      <div class="section">
+        <h2 class="section-title" data-number="2">Real-time Monitoring</h2>
+        <p class="section-description">The main section of the dashboard shows the live status of your connected device.</p>
+        
+        <ul class="feature-list">
+          <li class="feature-item">
+            <div class="feature-title"><i class="bi bi-speedometer2 text-primary me-2"></i>Metric Cards</div>
+            <p class="feature-description">The three cards at the top display the current Power consumption (in Watts), Voltage (in Volts), and Current (in Amperes). This data automatically refreshes every 2 seconds.</p>
+          </li>
+          
+          <li class="feature-item">
+            <div class="feature-title"><i class="bi bi-graph-up text-primary me-2"></i>Live Graph</div>
+            <p class="feature-description">Below the cards, a real-time graph visualizes the power consumption over the last few minutes, providing a clear view of energy usage patterns.</p>
+          </li>
+          
+          <li class="feature-item">
+            <div class="feature-title"><i class="bi bi-lightning-charge text-warning me-2"></i>Today's Summary</div>
+            <p class="feature-description">View today's total energy consumption (in kWh) and device runtime in the summary card on the right side of the dashboard.</p>
+          </li>
+        </ul>
+
+        <div class="note-box">
+          <div class="note-title">
+            <i class="bi bi-info-circle-fill"></i> Note
+          </div>
+          <p class="note-text">If a device shows as "Disconnected" or "Offline", check the device's power connection and internet connectivity. The system will automatically reconnect when the device comes online.</p>
+        </div>
+      </div>
+
+      <!-- Section 3: Device Control -->
+      <div class="section">
+        <h2 class="section-title" data-number="3">Device Control</h2>
+        <p class="section-description">You can directly control the smart plug from the web interface.</p>
+        
+        <ul class="feature-list">
+          <li class="feature-item">
+            <div class="feature-title"><i class="bi bi-power text-success me-2"></i>Turn ON/OFF</div>
+            <p class="feature-description">Use the "Turn ON" and "Turn OFF" buttons in the "Device Control" card to power your device on or off remotely.</p>
+          </li>
+          
+          <li class="feature-item">
+            <div class="feature-title"><i class="bi bi-check-circle text-primary me-2"></i>Current Status</div>
+            <p class="feature-description">The status indicator below the buttons confirms whether the device is currently ON or OFF. The indicator updates automatically after each control command.</p>
+          </li>
+        </ul>
+
+        <div class="note-box">
+          <div class="note-title">
+            <i class="bi bi-exclamation-triangle-fill"></i> Important
+          </div>
+          <p class="note-text">Control commands can only be sent to devices that are online. Ensure your device has a stable internet connection before attempting remote control.</p>
+        </div>
+      </div>
+
+      <!-- Section 4: Automated Schedules -->
+      <div class="section">
+        <h2 class="section-title" data-number="4">Automated Schedules</h2>
+        <p class="section-description">Set up automatic ON/OFF schedules to optimize energy usage and save costs.</p>
+        
+        <ul class="step-list">
+          <li class="step-item">
+            <strong>Create a Schedule:</strong> Click "Add Schedule" in the Automated Schedules section.
+          </li>
+          <li class="step-item">
+            <strong>Configure Times:</strong> Enter a schedule name, select start time (when device turns ON) and end time (when device turns OFF).
+          </li>
+          <li class="step-item">
+            <strong>Choose Days:</strong> Select which days of the week the schedule should run (Monday through Sunday).
+          </li>
+          <li class="step-item">
+            <strong>Enable/Disable:</strong> Use the toggle switch to enable or disable schedules without deleting them.
+          </li>
+          <li class="step-item">
+            <strong>Monitor Execution:</strong> The system checks schedules every minute and executes commands automatically at the specified times.
+          </li>
+        </ul>
+
+        <div class="note-box">
+          <div class="note-title">
+            <i class="bi bi-clock-history"></i> Schedule Tips
+          </div>
+          <p class="note-text">Create schedules to automatically turn off devices during peak electricity rate hours or when the building is unoccupied. This can significantly reduce energy costs.</p>
+        </div>
+      </div>
+
+      <!-- Section 5: Energy Usage Analysis -->
+      <div class="section">
+        <h2 class="section-title" data-number="5">Energy Usage - Range View</h2>
+        <p class="section-description">Analyze past energy consumption data for any specific date range.</p>
+        
+        <ul class="feature-list">
+          <li class="feature-item">
+            <div class="feature-title"><i class="bi bi-calendar-range text-primary me-2"></i>Select Date Range</div>
+            <p class="feature-description">Use the "From" and "To" date pickers to select your desired date range, then click "Load Range" to fetch the data.</p>
+          </li>
+          
+          <li class="feature-item">
+            <div class="feature-title"><i class="bi bi-clock-history text-primary me-2"></i>Hourly View</div>
+            <p class="feature-description">View average power consumption for each hour of the day (0-23). Multiple days are shown in different colored lines for easy comparison.</p>
+          </li>
+          
+          <li class="feature-item">
+            <div class="feature-title"><i class="bi bi-bar-chart text-primary me-2"></i>Daily View</div>
+            <p class="feature-description">See total energy consumption (in kWh) for each day in the selected range. This bar chart helps identify high-consumption days.</p>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Section 6: Monthly Bill Calculator -->
+      <div class="section">
+        <h2 class="section-title" data-number="6">Monthly Bill (Bangladesh)</h2>
+        <p class="section-description">Calculate your electricity bill based on Bangladesh's tiered pricing structure.</p>
+        
+        <ul class="feature-list">
+          <li class="feature-item">
+            <div class="feature-title"><i class="bi bi-calendar3 text-primary me-2"></i>Select Month</div>
+            <p class="feature-description">Choose a month using the month picker and click "Show" to calculate the bill for that period.</p>
+          </li>
+          
+          <li class="feature-item">
+            <div class="feature-title"><i class="bi bi-currency-exchange text-success me-2"></i>Bill Breakdown</div>
+            <p class="feature-description">View the total energy consumed (kWh) and the calculated bill amount in Bangladeshi Taka (Tk). The calculation follows the official DESCO tariff structure.</p>
+          </li>
+        </ul>
+
+        <div class="note-box">
+          <div class="note-title">
+            <i class="bi bi-calculator"></i> Pricing Information
+          </div>
+          <p class="note-text">The system uses Bangladesh's residential electricity pricing tiers: 0-50 kWh @ 3.75 Tk, 51-75 kWh @ 4.19 Tk, 76-200 kWh @ 5.72 Tk, 201-300 kWh @ 6.00 Tk, 301-400 kWh @ 6.34 Tk, and above 400 kWh @ 9.94 Tk per unit.</p>
+        </div>
+      </div>
+
+      <!-- Section 7: Data Export -->
+      <div class="section">
+        <h2 class="section-title" data-number="7">Downloading Raw Data</h2>
+        <p class="section-description">For detailed analysis, you can download all the recorded data in CSV format.</p>
+        
+        <ul class="feature-list">
+          <li class="feature-item">
+            <div class="feature-title"><i class="bi bi-file-earmark-spreadsheet text-success me-2"></i>Export Options</div>
+            <p class="feature-description">Choose to export all data or select a specific date range. The system will generate a CSV file containing timestamps, voltage, current, and power readings.</p>
+          </li>
+          
+          <li class="feature-item">
+            <div class="feature-title"><i class="bi bi-download text-primary me-2"></i>Download CSV</div>
+            <p class="feature-description">Click the "Download CSV" button to export the data. The file will be named with your device name, ID, and date range for easy identification.</p>
+          </li>
+          
+          <li class="feature-item">
+            <div class="feature-title"><i class="bi bi-table text-primary me-2"></i>Data Format</div>
+            <p class="feature-description">The exported CSV contains columns: Timestamp, Date Time, Voltage (V), Current (A), and Power (W). Open it with Excel, Google Sheets, or any spreadsheet application.</p>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Section 8: System Features -->
+      <div class="section">
+        <h2 class="section-title" data-number="8">Additional Features</h2>
+        
+        <ul class="feature-list">
+          <li class="feature-item">
+            <div class="feature-title"><i class="bi bi-moon-stars text-primary me-2"></i>Dark Mode</div>
+            <p class="feature-description">Toggle between light and dark themes using the button in the top-right corner. Your preference is saved automatically.</p>
+          </li>
+          
+          <li class="feature-item">
+            <div class="feature-title"><i class="bi bi-phone text-primary me-2"></i>Responsive Design</div>
+            <p class="feature-description">Access the dashboard from any device - desktop, tablet, or mobile. The interface adapts to your screen size automatically.</p>
+          </li>
+          
+          <li class="feature-item">
+            <div class="feature-title"><i class="bi bi-arrow-repeat text-primary me-2"></i>Auto-Refresh</div>
+            <p class="feature-description">Real-time data updates automatically every 2 seconds. Summary statistics refresh every minute to keep information current.</p>
+          </li>
+          
+          <li class="feature-item">
+            <div class="feature-title"><i class="bi bi-shield-check text-success me-2"></i>Data Persistence</div>
+            <p class="feature-description">All readings are stored in a local database, ensuring your historical data is preserved even if the device goes offline temporarily.</p>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Troubleshooting -->
+      <div class="section">
+        <h2 class="section-title" data-number="9">Troubleshooting</h2>
+        
+        <ul class="feature-list">
+          <li class="feature-item">
+            <div class="feature-title"><i class="bi bi-exclamation-triangle text-warning me-2"></i>Device Shows as Disconnected</div>
+            <p class="feature-description">Check that your smart plug is powered on and connected to WiFi. Verify that the Tuya cloud service is accessible from your network.</p>
+          </li>
+          
+          <li class="feature-item">
+            <div class="feature-title"><i class="bi bi-x-circle text-danger me-2"></i>Cannot Add Device</div>
+            <p class="feature-description">Ensure you've entered the correct Device ID, Access ID, and Access Secret. These credentials can be found in your Tuya IoT Platform account.</p>
+          </li>
+          
+          <li class="feature-item">
+            <div class="feature-title"><i class="bi bi-graph-down text-warning me-2"></i>No Historical Data Showing</div>
+            <p class="feature-description">Data collection begins when you add a device. If you just added a device, wait a few minutes for readings to accumulate before viewing historical data.</p>
+          </li>
+          
+          <li class="feature-item">
+            <div class="feature-title"><i class="bi bi-clock text-info me-2"></i>Schedule Not Executing</div>
+            <p class="feature-description">Verify the schedule is enabled, the device is online, and the current day is selected in the schedule's day configuration. Check the server logs for execution confirmations.</p>
+          </li>
+        </ul>
+
+        <div class="note-box">
+          <div class="note-title">
+            <i class="bi bi-question-circle-fill"></i> Need More Help?
+          </div>
+          <p class="note-text">If you continue to experience issues, check that the background data collection service is running and that your database file has proper read/write permissions.</p>
+        </div>
+      </div>
+
+      <div class="text-center">
+        <a href="/" class="back-button">
+          <i class="bi bi-arrow-left"></i>
+          Back to Dashboard
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      updateThemeIcon(newTheme);
+    }
+
+    function updateThemeIcon(theme) {
+      const icon = document.getElementById('theme-icon');
+      const text = document.getElementById('theme-text');
+      
+      if (theme === 'dark') {
+        icon.className = 'bi bi-sun-fill';
+        text.textContent = 'Light Mode';
+      } else {
+        icon.className = 'bi bi-moon-stars-fill';
+        text.textContent = 'Dark Mode';
+      }
+    }
+
+    function initTheme() {
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      updateThemeIcon(savedTheme);
+    }
+
+    document.addEventListener('DOMContentLoaded', initTheme);
+  </script>
+</body>
+</html>
